@@ -1,20 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Loading } from './src/components/Loading';
+import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
+import { Home } from './src/screens/Home';
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ Poppins_400Regular, Poppins_700Bold });
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      {fontsLoaded && (
+        <Loading />
+      )}
+      <StatusBar
+        style='dark'
+        backgroundColor='transparent'
+        translucent
+      />
+      <Home />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
