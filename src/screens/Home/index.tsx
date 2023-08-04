@@ -102,7 +102,7 @@ export function Home() {
           <Loading />
         ) : (
           <>
-            {message && <Tip message='Aqui vai uma dica' />}
+            {message && <Tip message={message} />}
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingVertical: 24 }}
