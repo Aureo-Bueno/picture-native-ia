@@ -6,9 +6,13 @@ import { Item } from '../../components/Item';
 import { Button } from '../../components/Button';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { usePostImageMutation } from '../../services/clarifai';
 
 export function Home() {
   const [selectedImageUri, setSelectedImageUri] = useState('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { mutateAsync } = usePostImageMutation();
+
   const handleSelectImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -17,6 +21,7 @@ export function Home() {
         return Alert.alert("É necessário conceder permissão para acessar seu álbum!");
       }
 
+      setIsLoading(true);
       const { canceled, assets } = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -25,11 +30,22 @@ export function Home() {
       });
 
       if (canceled) {
-        return;
+        return setIsLoading(false);
       }
 
       if(!canceled) {
-        setSelectedImageUri(assets[0].uri)
+        const imaManipuled = await ImageManipulator.manipulateAsync(
+          assets[0].uri,
+          [{ resize: { width: 900 }}],
+          {
+            compress: 1,
+            format: ImageManipulator.SaveFormat.JPEG,
+            base64: true,
+          }
+        );
+
+        setSelectedImageUri(imaManipuled.uri);
+        foodDetect(imaManipuled.base64);
       }
       
     } catch (error) {
@@ -37,9 +53,21 @@ export function Home() {
     }
   };
 
+  const foodDetect = async (imageBase64: string | undefined) => {
+    await mutateAsync(imageBase64, {
+      onSuccess: () => {
+        setIsLoading(false);
+        Alert.alert("Completed");
+      },
+      onError: (error) => {
+        console.log(`Erro ao enviar a imagem: ${error}`)
+      },
+    });
+  } 
+
   return (
     <View style={styles.container}>
-      <Button onPress={handleSelectImage} />
+      <Button onPress={handleSelectImage} disabled={isLoading} />
       {selectedImageUri ? (
         <Image
           source={{ uri: selectedImageUri }}
